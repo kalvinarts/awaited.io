@@ -1,0 +1,25 @@
+{
+  "name": "promised.io",
+  "version": "0.0.1",
+  "description": "",
+  "main": "node/index.js",
+  "browser": "browser/index.js",
+  "scripts": {
+    "start": "npm run watch",
+    "watch": "cp -p .babelrc-node .babelrc; babel -s true src -d node -w; rm .babelrc",
+    "build": "npm run clean; npm run node; npm run browser",
+    "node": "cp -p .babelrc-node .babelrc; babel -s true src -d node; rm .babelrc",
+    "browser": "cp -p .babelrc-browser .babelrc; babel -s true src -d browser; rm -rf browser/examples; rm .babelrc",
+    "test": "node node/examples/socket-io-example.js",
+    "clean": "rm -rf node browser"
+  },
+  "author": "Albert Calbet Martinez <kalvin@unseen.is>",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-env": "0.0.9",
+    "socket.io": "^1.7.1",
+    "socket.io-client": "^1.7.1"
+  }
+}
