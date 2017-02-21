@@ -1,5 +1,6 @@
 
-// Generates a random unique identifier
+// This awesome function comes from: https://gist.github.com/jed/982883
+// Returns a random v4 UUID of the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 function genUID(a){return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,genUID)};
 
 class AwaitedIO {
@@ -73,10 +74,10 @@ class AwaitedIO {
   callback (name, handler) {
     return async (next, ctx, msg) => {
       if (msg.name === name) {
-        let res = await handler(ctx, ...msg.args);
+        let response = await handler(ctx, ...msg.args);
         let message = {
           id: msg.id,
-          response: res
+          response
         };
         this.socket.emit(`__${this.namespace}_return__`, message);
       }      
