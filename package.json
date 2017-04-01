@@ -1,7 +1,7 @@
 {
-  "name": "promised.io",
+  "name": "awaited.io",
   "version": "0.0.1",
-  "description": "",
+  "description": "A minimalistic socket.io RPC using async/await",
   "main": "node/index.js",
   "browser": "browser/index.js",
   "scripts": {

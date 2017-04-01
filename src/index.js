@@ -26,7 +26,7 @@ class AwaitedIO {
         this[o] = opts[o];
     // Register a listener for all the calls
     socket.on(`__${this.namespace}_call__`, (msg) => {
-      this.chain(this.middleware, msg);
+      this.chain(msg);
     });
     // Register a listener for all the returns
     socket.on(`__${this.namespace}_return__`, (msg) => {
@@ -56,8 +56,8 @@ class AwaitedIO {
     return this;
   }
 
-  // Executes a middleware chain
-  async chain (middleware, msg) {
+  // Executes the middleware chain passing the message along
+  async chain (msg) {
     let index = 0;
     const next = async (err) => {
       if (index < this.middleware.length && !err) {
@@ -89,6 +89,14 @@ class AwaitedIO {
   register (name, handler) {
     this.local.push(name);
     return this.use( this.callback(name, handler) );
+  }
+
+  // Registers a set of calls to be remotely available
+  registerAPI (apiObj) {
+    for (let name of Object.keys(apiObj)) {
+      if (apiObj.hasOwnProperty(name))
+        this.register(name, apiObj[name]);
+    }
   }
 
   // Makes a remote call

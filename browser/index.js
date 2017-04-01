@@ -63,7 +63,7 @@ var AwaitedIO = function () {
     }
 
     socket.on('__' + this.namespace + '_call__', function (msg) {
-      _this.chain(_this.middleware, msg);
+      _this.chain(msg);
     });
     // Register a listener for all the returns
     socket.on('__' + this.namespace + '_return__', function (msg) {
@@ -97,12 +97,12 @@ var AwaitedIO = function () {
       return this;
     }
 
-    // Executes a middleware chain
+    // Executes the middleware chain passing the message along
 
   }, {
     key: 'chain',
     value: function () {
-      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(middleware, msg) {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(msg) {
         var _this2 = this;
 
         var index, next;
@@ -144,7 +144,7 @@ var AwaitedIO = function () {
                     }, _callee, _this2);
                   }));
 
-                  return function next(_x4) {
+                  return function next(_x3) {
                     return _ref2.apply(this, arguments);
                   };
                 }();
@@ -159,7 +159,7 @@ var AwaitedIO = function () {
         }, _callee2, this);
       }));
 
-      function chain(_x2, _x3) {
+      function chain(_x2) {
         return _ref.apply(this, arguments);
       }
 
@@ -212,7 +212,7 @@ var AwaitedIO = function () {
           }, _callee3, _this3);
         }));
 
-        return function (_x5, _x6, _x7) {
+        return function (_x4, _x5, _x6) {
           return _ref3.apply(this, arguments);
         };
       }();
@@ -225,6 +225,37 @@ var AwaitedIO = function () {
     value: function register(name, handler) {
       this.local.push(name);
       return this.use(this.callback(name, handler));
+    }
+
+    // Registers a set of calls to be remotely available
+
+  }, {
+    key: 'registerAPI',
+    value: function registerAPI(apiObj) {
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = Object.keys(apiObj)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var name = _step2.value;
+
+          if (apiObj.hasOwnProperty(name)) this.register(name, apiObj[name]);
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
     }
 
     // Makes a remote call
