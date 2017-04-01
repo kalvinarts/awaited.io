@@ -8,7 +8,8 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// Generates a random unique identifier
+// This awesome function comes from: https://gist.github.com/jed/982883
+// Returns a random v4 UUID of the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 function genUID(a) {
   return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, genUID);
 };
@@ -174,7 +175,7 @@ var AwaitedIO = function () {
 
       return function () {
         var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(next, ctx, msg) {
-          var res, message;
+          var response, message;
           return regeneratorRuntime.wrap(function _callee3$(_context3) {
             while (1) {
               switch (_context3.prev = _context3.next) {
@@ -188,10 +189,10 @@ var AwaitedIO = function () {
                   return handler.apply(undefined, [ctx].concat(_toConsumableArray(msg.args)));
 
                 case 3:
-                  res = _context3.sent;
+                  response = _context3.sent;
                   message = {
                     id: msg.id,
-                    response: res
+                    response: response
                   };
 
                   _this3.socket.emit('__' + _this3.namespace + '_return__', message);

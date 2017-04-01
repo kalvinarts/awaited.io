@@ -51,7 +51,7 @@ async function main() {
       const now = new Date();
       await next();
       const ms = new Date - now;
-      console.log(`${msg.name} - ${ms}ms`);
+      console.log(`-- call - ${msg.name} - ${ms}ms`);
     });
 
     // Register the api functions

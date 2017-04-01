@@ -53,7 +53,7 @@ let main = (() => {
           const now = new Date();
           yield next();
           const ms = new Date() - now;
-          console.log(`${msg.name} - ${ms}ms`);
+          console.log(`-- call - ${msg.name} - ${ms}ms`);
         });
 
         return function (_x, _x2, _x3) {

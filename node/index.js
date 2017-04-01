@@ -2,7 +2,8 @@
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-// Generates a random unique identifier
+// This awesome function comes from: https://gist.github.com/jed/982883
+// Returns a random v4 UUID of the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 function genUID(a) {
   return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, genUID);
 };
@@ -89,10 +90,10 @@ class AwaitedIO {
     return (() => {
       var _ref2 = _asyncToGenerator(function* (next, ctx, msg) {
         if (msg.name === name) {
-          let res = yield handler(ctx, ...msg.args);
+          let response = yield handler(ctx, ...msg.args);
           let message = {
             id: msg.id,
-            response: res
+            response
           };
           _this2.socket.emit(`__${_this2.namespace}_return__`, message);
         }
