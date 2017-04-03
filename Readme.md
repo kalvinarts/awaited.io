@@ -96,7 +96,7 @@ aio.registerAPI({
 
 Awaited.io allows to set middleware functions on the server side. The middleware chain is executed in the same order it's declared.
 
-When you register a method to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware functions to be executed before the response is sent to the client make sure you atach them before registering your exposed methods.
+When you register a function to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware to be executed before the response is sent to the client make sure you atach your it before registering your exposed functions.
 
 The middleware functions __MUST__ be `async`.
 

@@ -108,14 +108,18 @@ var AwaitedIO = function () {
     }
 
     socket.on('__' + this.namespace + '_call__', function (msg) {
-      _this3.chain(msg);
+      _this3.chain(msg).catch(function (err) {
+        console.log(err);
+      });
     });
     // Register a listener for all the returns
     socket.on('__' + this.namespace + '_return__', function (msg) {
       _this3.calls = _this3.calls.filter(function (call) {
         if (msg.id === call.id) {
           call.f(msg.response);
+          return false;
         }
+        return true;
       });
     });
     // Register a listener for all the errors
@@ -123,7 +127,9 @@ var AwaitedIO = function () {
       _this3.calls = _this3.calls.filter(function (call) {
         if (msg.id === call.id) {
           call.r(new AwaitedIOError(msg.response.message, msg.response.stack));
+          return false;
         }
+        return true;
       });
     });
     // Handle the internal call to update remote calls
@@ -184,7 +190,10 @@ var AwaitedIO = function () {
                               };
 
                               if (_this4.debug) error.stack = err.stack;
-                              _this4.socket.emit('__' + _this4.namespace + '_error__', error);
+                              _this4.socket.emit('__' + _this4.namespace + '_error__', {
+                                id: msg.id,
+                                response: error
+                              });
                             }
 
                           case 7:
@@ -200,9 +209,13 @@ var AwaitedIO = function () {
                   };
                 }();
 
-                return _context2.abrupt('return', next());
+                _context2.next = 4;
+                return next();
 
-              case 3:
+              case 4:
+                return _context2.abrupt('return', _context2.sent);
+
+              case 5:
               case 'end':
                 return _context2.stop();
             }
@@ -255,7 +268,7 @@ var AwaitedIO = function () {
                   _context3.prev = 9;
                   _context3.t0 = _context3['catch'](1);
 
-                  if (!debug) {
+                  if (!_this5.debug) {
                     _context3.next = 17;
                     break;
                   }

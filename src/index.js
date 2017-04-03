@@ -52,14 +52,19 @@ class AwaitedIO {
         this[o] = opts[o];
     // Register a listener for all the calls
     socket.on(`__${this.namespace}_call__`, (msg) => {
-      this.chain(msg);
+      this.chain(msg)
+      .catch((err) => {
+        console.log(err)
+      });
     });
     // Register a listener for all the returns
     socket.on(`__${this.namespace}_return__`, (msg) => {
       this.calls = this.calls.filter(call => {
         if (msg.id === call.id) {
           call.f(msg.response);
+          return false;
         }
+        return true;
       })
     });
     // Register a listener for all the errors
@@ -70,7 +75,9 @@ class AwaitedIO {
             msg.response.message,
             msg.response.stack
           ));
+          return false;
         }
+        return true;
       });
     });
     // Handle the internal call to update remote calls
@@ -98,10 +105,13 @@ class AwaitedIO {
         }
         if (this.debug)
           error.stack = err.stack
-        this.socket.emit(`__${this.namespace}_error__`, error);
+        this.socket.emit(`__${this.namespace}_error__`, {
+          id: msg.id,
+          response: error
+        });
       }
     }
-    return next();
+    return await next();
   }
   
   // Constructs the middleware function to handle a call
@@ -116,7 +126,7 @@ class AwaitedIO {
           };
           this.socket.emit(`__${this.namespace}_return__`, message);
         } catch (err) {
-          if (debug)
+          if (this.debug)
             return await next(err);
           else
             throw err;

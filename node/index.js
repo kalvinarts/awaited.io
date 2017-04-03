@@ -54,14 +54,18 @@ class AwaitedIO {
     for (let o of Object.keys(opts)) if (opts.hasOwnProperty(o)) this[o] = opts[o];
     // Register a listener for all the calls
     socket.on(`__${this.namespace}_call__`, msg => {
-      this.chain(msg);
+      this.chain(msg).catch(err => {
+        console.log(err);
+      });
     });
     // Register a listener for all the returns
     socket.on(`__${this.namespace}_return__`, msg => {
       this.calls = this.calls.filter(call => {
         if (msg.id === call.id) {
           call.f(msg.response);
+          return false;
         }
+        return true;
       });
     });
     // Register a listener for all the errors
@@ -69,7 +73,9 @@ class AwaitedIO {
       this.calls = this.calls.filter(call => {
         if (msg.id === call.id) {
           call.r(new AwaitedIOError(msg.response.message, msg.response.stack));
+          return false;
         }
+        return true;
       });
     });
     // Handle the internal call to update remote calls
@@ -100,7 +106,10 @@ class AwaitedIO {
               message: err.message
             };
             if (_this.debug) error.stack = err.stack;
-            _this.socket.emit(`__${_this.namespace}_error__`, error);
+            _this.socket.emit(`__${_this.namespace}_error__`, {
+              id: msg.id,
+              response: error
+            });
           }
         });
 
@@ -108,7 +117,7 @@ class AwaitedIO {
           return _ref.apply(this, arguments);
         };
       })();
-      return next();
+      return yield next();
     })();
   }
 
@@ -127,7 +136,7 @@ class AwaitedIO {
             };
             _this2.socket.emit(`__${_this2.namespace}_return__`, message);
           } catch (err) {
-            if (debug) return yield next(err);else throw err;
+            if (_this2.debug) return yield next(err);else throw err;
           }
         }
         return yield next();

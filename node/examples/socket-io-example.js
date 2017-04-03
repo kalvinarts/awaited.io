@@ -29,8 +29,12 @@ let main = (() => {
       },
       has: function (ctx, key) {
         return ctx.map.has(key);
-      }
+      },
 
+      // Test error handling
+      crash: function (ctx, error) {
+        throw new Error(error);
+      }
     };
 
     // Setup a socket.io server
@@ -44,7 +48,10 @@ let main = (() => {
     io.on('connection', function (socket) {
 
       // Create an AwaitedIO instance to wrap the socket using the created context
-      const aio = new AwaitedIO(socket, { ctx });
+      const aio = new AwaitedIO(socket, {
+        debug: true, // Errors will be sent to the client
+        ctx
+      });
 
       // Register a middleware to debug things
       aio.use((() => {
@@ -71,6 +78,8 @@ let main = (() => {
     // Get the wrapped remote functions (also available at aioClient.remote once aioClient.update has been called)
     const remote = yield aioClient.update();
 
+    console.log('- Remote exposes: ', Object.keys(remote));
+
     // Test the sqrt functions
     console.log('-- response:', (yield remote.sqrt(16)));
     console.log('-- response:', (yield remote.delaySqrt(4, 2)));
@@ -79,6 +88,13 @@ let main = (() => {
     yield remote.set('test', 1234567890);
     console.log('-- response:', (yield remote.has('test')));
     console.log('-- response:', (yield remote.get('test')));
+
+    // Test error handling (debug: true)
+    try {
+      yield remote.crash('Please crash ;)');
+    } catch (err) {
+      console.log('-- error:', err.stack);
+    }
 
     process.exit(0);
   });
