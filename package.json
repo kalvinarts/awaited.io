@@ -14,7 +14,7 @@
     "clean": "rm -rf node browser"
   },
   "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
-  "url": "https://github.com/kalvinarts/awaited.io"
+  "url": "https://github.com/kalvinarts/awaited.io",
   "license": "BSD-3-Clause",
   "private": false,
   "devDependencies": {
