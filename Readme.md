@@ -17,9 +17,7 @@
 
 ### Install
 
-I will wait until the module its properly tested to publish it to npm. Meantime:
-
-`npm install git+https://github.com/kalvinarts/awaited.io.git#master`
+`npm install awaited.io.git`
 
 ### Usage - server
 

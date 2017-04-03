@@ -15,7 +15,7 @@
   },
   "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
   "license": "BSD-3-Clause",
-  "private": true,
+  "private": false,
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-preset-env": "0.0.9",
