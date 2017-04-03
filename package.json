@@ -13,7 +13,7 @@
     "test": "node node/examples/socket-io-example.js",
     "clean": "rm -rf node browser"
   },
-  "author": "Albert Calbet Martinez <kalvin@unseen.is>",
+  "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
   "license": "BSD-3-Clause",
   "private": true,
   "devDependencies": {
