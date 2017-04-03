@@ -17,7 +17,7 @@
 
 ### Install
 
-`npm install awaited.io
+`npm install awaited.io`
 
 ### Usage - server
 
