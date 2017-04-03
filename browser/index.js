@@ -8,15 +8,54 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 // This awesome function comes from: https://gist.github.com/jed/982883
 // Returns a random v4 UUID of the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 function genUID(a) {
   return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, genUID);
 };
 
+var ExtendableError = function (_Error) {
+  _inherits(ExtendableError, _Error);
+
+  function ExtendableError(message) {
+    _classCallCheck(this, ExtendableError);
+
+    var _this = _possibleConstructorReturn(this, (ExtendableError.__proto__ || Object.getPrototypeOf(ExtendableError)).call(this, message));
+
+    _this.name = _this.constructor.name;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(_this, _this.constructor);
+    } else {
+      _this.stack = new Error(message).stack;
+    }
+    return _this;
+  }
+
+  return ExtendableError;
+}(Error);
+
+var AwaitedIOError = function (_ExtendableError) {
+  _inherits(AwaitedIOError, _ExtendableError);
+
+  function AwaitedIOError(msg, stack) {
+    _classCallCheck(this, AwaitedIOError);
+
+    var _this2 = _possibleConstructorReturn(this, (AwaitedIOError.__proto__ || Object.getPrototypeOf(AwaitedIOError)).call(this, msg));
+
+    if (stack) _this2.stack = stack;
+    return _this2;
+  }
+
+  return AwaitedIOError;
+}(ExtendableError);
+
 var AwaitedIO = function () {
   function AwaitedIO(socket) {
-    var _this = this;
+    var _this3 = this;
 
     var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
@@ -36,7 +75,13 @@ var AwaitedIO = function () {
     this.local = [];
     // The remote calls available
     this.remote = {};
-    // Apply options
+    // Debug flag.
+    // If set to true any errors thrown by the exposed methods will
+    // be sent to the client. 
+    // Errors returned by the middleware function are always sent
+    // to the client but if the debug flag is not set the stack
+    // trace will be stripped from the error 
+    this.debug = false;
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
@@ -63,11 +108,11 @@ var AwaitedIO = function () {
     }
 
     socket.on('__' + this.namespace + '_call__', function (msg) {
-      _this.chain(msg);
+      _this3.chain(msg);
     });
     // Register a listener for all the returns
     socket.on('__' + this.namespace + '_return__', function (msg) {
-      _this.calls = _this.calls.filter(function (call) {
+      _this3.calls = _this3.calls.filter(function (call) {
         if (msg.id === call.id) {
           call.f(msg.response);
         }
@@ -75,15 +120,15 @@ var AwaitedIO = function () {
     });
     // Register a listener for all the errors
     socket.on('__' + this.namespace + '_error__', function (msg) {
-      _this.calls = _this.calls.filter(function (call) {
+      _this3.calls = _this3.calls.filter(function (call) {
         if (msg.id === call.id) {
-          call.r(new Error(msg.response));
+          call.r(new AwaitedIOError(msg.response.message, msg.response.stack));
         }
       });
     });
     // Handle the internal call to update remote calls
     this.register('_update', function () {
-      return _this.local;
+      return _this3.local;
     });
   }
 
@@ -103,7 +148,7 @@ var AwaitedIO = function () {
     key: 'chain',
     value: function () {
       var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(msg) {
-        var _this2 = this;
+        var _this4 = this;
 
         var index, next;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -114,18 +159,19 @@ var AwaitedIO = function () {
 
                 next = function () {
                   var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee(err) {
+                    var error;
                     return regeneratorRuntime.wrap(function _callee$(_context) {
                       while (1) {
                         switch (_context.prev = _context.next) {
                           case 0:
-                            if (!(index < _this2.middleware.length && !err)) {
+                            if (!(index < _this4.middleware.length && !err)) {
                               _context.next = 6;
                               break;
                             }
 
                             index++;
                             _context.next = 4;
-                            return _this2.middleware[index - 1](next, _this2.ctx, msg);
+                            return _this4.middleware[index - 1](next, _this4.ctx, msg);
 
                           case 4:
                             _context.next = 7;
@@ -133,7 +179,12 @@ var AwaitedIO = function () {
 
                           case 6:
                             if (err) {
-                              _this2.socket.emit('__' + _this2.namespace + '_error__', err.message);
+                              error = {
+                                message: err.message
+                              };
+
+                              if (_this4.debug) error.stack = err.stack;
+                              _this4.socket.emit('__' + _this4.namespace + '_error__', error);
                             }
 
                           case 7:
@@ -141,7 +192,7 @@ var AwaitedIO = function () {
                             return _context.stop();
                         }
                       }
-                    }, _callee, _this2);
+                    }, _callee, _this4);
                   }));
 
                   return function next(_x3) {
@@ -171,7 +222,7 @@ var AwaitedIO = function () {
   }, {
     key: 'callback',
     value: function callback(name, handler) {
-      var _this3 = this;
+      var _this5 = this;
 
       return function () {
         var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(next, ctx, msg) {
@@ -181,35 +232,56 @@ var AwaitedIO = function () {
               switch (_context3.prev = _context3.next) {
                 case 0:
                   if (!(msg.name === name)) {
-                    _context3.next = 6;
+                    _context3.next = 18;
                     break;
                   }
 
-                  _context3.next = 3;
+                  _context3.prev = 1;
+                  _context3.next = 4;
                   return handler.apply(undefined, [ctx].concat(_toConsumableArray(msg.args)));
 
-                case 3:
+                case 4:
                   response = _context3.sent;
                   message = {
                     id: msg.id,
                     response: response
                   };
 
-                  _this3.socket.emit('__' + _this3.namespace + '_return__', message);
-
-                case 6:
-                  _context3.next = 8;
-                  return next();
-
-                case 8:
-                  return _context3.abrupt('return', _context3.sent);
+                  _this5.socket.emit('__' + _this5.namespace + '_return__', message);
+                  _context3.next = 18;
+                  break;
 
                 case 9:
+                  _context3.prev = 9;
+                  _context3.t0 = _context3['catch'](1);
+
+                  if (!debug) {
+                    _context3.next = 17;
+                    break;
+                  }
+
+                  _context3.next = 14;
+                  return next(_context3.t0);
+
+                case 14:
+                  return _context3.abrupt('return', _context3.sent);
+
+                case 17:
+                  throw _context3.t0;
+
+                case 18:
+                  _context3.next = 20;
+                  return next();
+
+                case 20:
+                  return _context3.abrupt('return', _context3.sent);
+
+                case 21:
                 case 'end':
                   return _context3.stop();
               }
             }
-          }, _callee3, _this3);
+          }, _callee3, _this5, [[1, 9]]);
         }));
 
         return function (_x4, _x5, _x6) {
@@ -263,7 +335,7 @@ var AwaitedIO = function () {
   }, {
     key: 'call',
     value: function call(name) {
-      var _this4 = this;
+      var _this6 = this;
 
       for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
@@ -271,8 +343,8 @@ var AwaitedIO = function () {
 
       return new Promise(function (f, r) {
         var id = genUID();
-        _this4.calls.push({ id: id, f: f, r: r });
-        _this4.socket.emit('__' + _this4.namespace + '_call__', { id: id, name: name, args: args });
+        _this6.calls.push({ id: id, f: f, r: r });
+        _this6.socket.emit('__' + _this6.namespace + '_call__', { id: id, name: name, args: args });
       });
     }
 
@@ -282,7 +354,7 @@ var AwaitedIO = function () {
     key: 'update',
     value: function () {
       var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee5() {
-        var _this5 = this;
+        var _this7 = this;
 
         var remote;
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
@@ -299,7 +371,7 @@ var AwaitedIO = function () {
                 this.remote = {};
                 // Fill the remote object with the calls wrappers
                 remote.forEach(function (name) {
-                  _this5.remote[name] = _asyncToGenerator(regeneratorRuntime.mark(function _callee4() {
+                  _this7.remote[name] = _asyncToGenerator(regeneratorRuntime.mark(function _callee4() {
                     for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
                       args[_key2] = arguments[_key2];
                     }
@@ -309,7 +381,7 @@ var AwaitedIO = function () {
                         switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this5.call.apply(_this5, [name].concat(_toConsumableArray(args)));
+                            return _this7.call.apply(_this7, [name].concat(_toConsumableArray(args)));
 
                           case 2:
                             return _context4.abrupt('return', _context4.sent);
@@ -319,7 +391,7 @@ var AwaitedIO = function () {
                             return _context4.stop();
                         }
                       }
-                    }, _callee4, _this5);
+                    }, _callee4, _this7);
                   }));
                 });
                 return _context5.abrupt('return', this.remote);

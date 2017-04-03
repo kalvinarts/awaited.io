@@ -7,7 +7,7 @@ I will wait until the module its properly tested to publish it to npm. Meantime:
 
 `npm install git+https://github.com/kalvinarts/awaited.io.git#master`
 
-### Usage - server
+### Usage - server
 
 Let's make a simple server that exposes an API to operate the new ES6 Map object.
 
@@ -69,17 +69,44 @@ main();
 
 That's it ;)
 
+### Registering functions
+
+To register functions to be exposed to the client side you can use the `register` and the `registerAPI` methods.
+
+Registered functions that return a Promise will be wait until the promise is resolved or rejected to send its response to the client side.
+
+```javascript
+// Register a single method
+aio.register('add', (ctx, a, b) => a+b);
+
+// Register multiple methods at once
+aio.registerAPI({
+  sqrt        : (ctx, num) => Math.sqrt(num),
+  delaySqrt   : (ctx, secs, num) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(Math.sqrt(num))
+      }, secs * 1000)
+    });
+  }
+});
+```
+
 ### Middleware
 
-Awaited.io allows to set middleware functions on the server side. The middleware functions __MUST__ be `async`.
+Awaited.io allows to set middleware functions on the server side. The middleware chain is executed in the same order it's declared.
+
+When you register a method to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware functions to be executed before the response is sent to the client make sure you atach them before registering your exposed methods.
+
+The middleware functions __MUST__ be `async`.
 
 These functions get three arguments:
 
-__next__ : function (err) - This function __MUST ALWAYS__ be called somewhere in the middleware function. If an error is passed the execution of the middleware chain will stop and the error will be passed to the client side which will reject the `Promise` returned by the remote function call.
+__next__ : _function (err)_ - This function __MUST ALWAYS__ be called somewhere in the middleware function. If an error is passed the execution of the middleware chain will stop and the error will be passed to the client side which will reject the `Promise` returned by the remote function call.
 
-__ctx__ : object - The shared context
+__ctx__ : _object_ - The shared context
 
-__msg__ : object - The message passed from the client, which will look like:
+__msg__ : _object_ - The message passed from the client, which will look like:
 ```javascript
 
 {

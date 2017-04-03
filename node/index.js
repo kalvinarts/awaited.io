@@ -8,6 +8,25 @@ function genUID(a) {
   return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, genUID);
 };
 
+class ExtendableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error(message).stack;
+    }
+  }
+}
+
+class AwaitedIOError extends ExtendableError {
+  constructor(msg, stack) {
+    super(msg);
+    if (stack) this.stack = stack;
+  }
+}
+
 class AwaitedIO {
 
   constructor(socket, opts = {}) {
@@ -25,7 +44,13 @@ class AwaitedIO {
     this.local = [];
     // The remote calls available
     this.remote = {};
-    // Apply options
+    // Debug flag.
+    // If set to true any errors thrown by the exposed methods will
+    // be sent to the client. 
+    // Errors returned by the middleware function are always sent
+    // to the client but if the debug flag is not set the stack
+    // trace will be stripped from the error 
+    this.debug = false;
     for (let o of Object.keys(opts)) if (opts.hasOwnProperty(o)) this[o] = opts[o];
     // Register a listener for all the calls
     socket.on(`__${this.namespace}_call__`, msg => {
@@ -43,7 +68,7 @@ class AwaitedIO {
     socket.on(`__${this.namespace}_error__`, msg => {
       this.calls = this.calls.filter(call => {
         if (msg.id === call.id) {
-          call.r(new Error(msg.response));
+          call.r(new AwaitedIOError(msg.response.message, msg.response.stack));
         }
       });
     });
@@ -71,7 +96,11 @@ class AwaitedIO {
             index++;
             yield _this.middleware[index - 1](next, _this.ctx, msg);
           } else if (err) {
-            _this.socket.emit(`__${_this.namespace}_error__`, err.message);
+            const error = {
+              message: err.message
+            };
+            if (_this.debug) error.stack = err.stack;
+            _this.socket.emit(`__${_this.namespace}_error__`, error);
           }
         });
 
@@ -90,12 +119,16 @@ class AwaitedIO {
     return (() => {
       var _ref2 = _asyncToGenerator(function* (next, ctx, msg) {
         if (msg.name === name) {
-          let response = yield handler(ctx, ...msg.args);
-          let message = {
-            id: msg.id,
-            response
-          };
-          _this2.socket.emit(`__${_this2.namespace}_return__`, message);
+          try {
+            let response = yield handler(ctx, ...msg.args);
+            let message = {
+              id: msg.id,
+              response
+            };
+            _this2.socket.emit(`__${_this2.namespace}_return__`, message);
+          } catch (err) {
+            if (debug) return yield next(err);else throw err;
+          }
         }
         return yield next();
       });

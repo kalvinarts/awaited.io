@@ -49,7 +49,7 @@ async function main() {
     aio.use(async (next, ctx, msg) => {
       const now = new Date();
       await next();
-      const ms = new Date - now;
+      const ms = new Date() - now;
       console.log(`-- call - ${msg.name} - ${ms}ms`);
     });
 
