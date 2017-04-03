@@ -1,6 +1,6 @@
 {
   "name": "awaited.io",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A minimalistic socket.io RPC using async/await",
   "main": "node/index.js",
   "browser": "browser/index.js",
@@ -14,7 +14,11 @@
     "clean": "rm -rf node browser"
   },
   "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
-  "url": "https://github.com/kalvinarts/awaited.io",
+  "homepage": "https://github.com/kalvinarts/awaited.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalvinarts/awaited.io"
+  },
   "license": "BSD-3-Clause",
   "private": false,
   "devDependencies": {
