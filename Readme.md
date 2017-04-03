@@ -81,7 +81,7 @@ That's it ;)
 
 To register functions to be exposed to the client side you can use the `register` and the `registerAPI` methods.
 
-Registered functions that return a Promise will be wait until the promise is resolved or rejected to send its response to the client side.
+Registered functions that return a Promise will be awaited until the promise is resolved or rejected to send its response to the client side.
 
 __register__ : _function (name, func)_ - Registers a function to be exposed.
 
@@ -107,64 +107,6 @@ aio.registerAPI({
       }, secs * 1000)
     });
   }
-});
-```
-
-### Middleware
-
-Awaited.io allows you to set middleware functions on the server side. The middleware chain is executed in the same order it's declared.
-
-When you register a function to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware to be executed before the response is sent to the client make sure you atach it before registering your exposed functions.
-
-The middleware functions __MUST__ be `async`.
-
-These functions get three arguments:
-
-__next__ : _function (err)_ - This function __MUST ALWAYS__ be called somewhere in the middleware function. If an error is passed the execution of the middleware chain will stop and the error will be passed to the client side which will reject the `Promise` returned by the remote function call.
-
-__ctx__ : _object_ - The shared context
-
-__msg__ : _object_ - The message passed from the client, which will look like:
-```javascript
-
-{
-  id    : 'dc60f70e-bcb8-4b7c-bf1b-9da460733c8a',
-  name  : 'mapSet',
-  args  : ['foo', 'bar']
-}
-
-```
-
-Examples:
-
-Middleware to log the API calls and the time taken to respond
-```javascript
-aio.use(async (next, ctx, msg) => {
-
-  const now = new Date(); 
-  await next(); // Await for the middleware chain to end execution
-
-  const ms = new Date() - now;
-  console.log(`-- ${msg.id} - ${msg.name} - ${ms}ms`);
-
-});
-```
-
-Middleware to block access to certain functions if the user is not an administrator
-```javascript
-const adminFuncs = [ 'addUser', 'deleteUser', 'editUser' ]
-const user = { isAdmin: false };
-aio.use(async (next, ctx, msg) => {
-
-  for (let func in adminFuncs) {
-    if (msg.name === func && !user.isAdmin) {
-      return await next(
-        new Error(`Unauthorized call of method ${msg.name}`)
-      );
-    }
-  }
-  await next();
-
 });
 ```
 
@@ -199,6 +141,62 @@ iaoClient.update()
 })
 .then((res) => {
   let result = res;
+});
+```
+
+### Middleware
+
+Awaited.io allows you to set middleware functions on the server side. The middleware chain is executed in the same order it's declared.
+
+When you register a function to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware to be executed before the response is sent to the client make sure you atach it before registering your exposed functions.
+
+The middleware functions __MUST__ be `async`.
+
+These functions get three arguments:
+
+__next__ : _function (err)_ - This function __MUST ALWAYS__ be called somewhere in the middleware function. If an error is passed the execution of the middleware chain will stop and the error will be passed to the client side which will reject the `Promise` returned by the remote function call.
+
+__ctx__ : _object_ - The shared context
+
+__msg__ : _object_ - The message passed from the client, which will look like:
+```javascript
+{
+  id    : 'dc60f70e-bcb8-4b7c-bf1b-9da460733c8a',
+  name  : 'mapSet',
+  args  : ['foo', 'bar']
+}
+```
+
+Examples:
+
+Middleware to log the API calls and the time taken to respond
+```javascript
+aio.use(async (next, ctx, msg) => {
+
+  const now = new Date(); 
+  await next(); // Await for the middleware chain to end execution
+
+  const ms = new Date() - now;
+  console.log(`-- ${msg.id} - ${msg.name} - ${ms}ms`);
+
+});
+```
+
+Middleware to block access to certain functions if the user is not an administrator
+```javascript
+const adminFuncs = [ 'addUser', 'deleteUser', 'editUser' ]
+const user = { isAdmin: false };
+aio.use(async (next, ctx, msg) => {
+
+  for (let func in adminFuncs) {
+    if (msg.name === func && !user.isAdmin) {
+      return await next(
+        new Error(`Unauthorized call of method ${msg.name}`)
+      );
+    }
+  }
+  await next();
+
 });
 ```
 
