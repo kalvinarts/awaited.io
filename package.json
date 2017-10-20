@@ -2,8 +2,8 @@
   "name": "awaited.io",
   "version": "0.0.5",
   "description": "A minimalistic socket.io RPC using async/await",
-  "main": "node/index.js",
-  "browser": "browser/index.js",
+  "main": "index.js",
+  "browser": "index.js",
   "scripts": {
     "start": "npm run watch",
     "watch": "cp -p .babelrc-node .babelrc; babel -s true src -d node -w; rm .babelrc",
