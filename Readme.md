@@ -1,6 +1,10 @@
 # awaited.io
 ## A minimalistic socket.io RPC using Promises and async/await
 
+### WARNING: now exported versions default to ESNext.
+
+To import the transpiled versions import from `awaited.io/node` and `awaited.io/browser`
+
 ### Index
 
 * [Install](#install)
