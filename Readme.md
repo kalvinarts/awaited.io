@@ -1,9 +1,6 @@
 # awaited.io
-## A minimalistic socket.io RPC using Promises and async/await
 
-### WARNING: now exported versions default to ESNext.
-
-To import the transpiled versions import from `awaited.io/node` and `awaited.io/browser`
+## A minimalistic [socket.io](https://socket.io/) RPC using Promises and async/await
 
 ### Index
 
@@ -15,8 +12,8 @@ To import the transpiled versions import from `awaited.io/node` and `awaited.io/
 * [Calling functions from the client](#calling-functions-from-the-client)
 * [Errors](#errors)
 * [The client is a server and the server is a client](#the-client-is-a-server-and-the-server-is-a-client)
-* [Browser](#browser)
-* [Current state](#current-state)
+* [Examples](#Examples)
+* [Coffee contributions accepted](#Coffee-contributions-accepted)
 * [License](#license)
 
 ### Install
@@ -25,7 +22,7 @@ To import the transpiled versions import from `awaited.io/node` and `awaited.io/
 
 ### Usage - server
 
-Let's make a simple server that exposes an API to operate the new ES6 Map object.
+Let's make a simple server that exposes an API to operate the an ES6 Map object.
 
 The Map will be exposed to our API functions via a shared context so all the clients connecting with our RPC server will access the same Map instance.
 
@@ -45,11 +42,9 @@ const ctx   = {
 const io = new SocketIO().listen(3131);
 
 io.on('connection', socket => {
-
   const aio = new AwaitedIO(socket, { ctx });
 
   aio.registerAPI(api);
-
 });
 ```
 
@@ -62,7 +57,6 @@ const AwaitedIO = require('awaited.io');
 const ClientIO  = require('socket.io-client');
 
 async function main () {
-
   const socket    = new ClientIO('http://localhost:3131');
   const aioClient = new AwaitedIO(socket);
 
@@ -73,7 +67,6 @@ async function main () {
   // -- response: true
   console.log('-- response:', await remote.mapGet('foo'));
   // -- response: bar
-
 }
 
 main();
@@ -152,9 +145,9 @@ iaoClient.update()
 
 Awaited.io allows you to set middleware functions on the server side. The middleware chain is executed in the same order it's declared.
 
-When you register a function to be exposed to the client side it is internally atached to the middleware chain, so if you want your middleware to be executed before the response is sent to the client make sure you atach it before registering your exposed functions.
+When you register a function to be exposed to the client side it is internally attached to the middleware chain, so if you want your middleware to be executed before the response is sent to the client make sure you atach it before registering your exposed functions.
 
-The middleware functions __MUST__ be `async`.
+The middleware functions __MUST__ be `async` or return a Promise.
 
 These functions get three arguments:
 
@@ -171,36 +164,17 @@ __msg__ : _object_ - The message passed from the client, which will look like:
 }
 ```
 
-Examples:
+Example:
 
 Middleware to log the API calls and the time taken to respond
 ```javascript
 aio.use(async (next, ctx, msg) => {
-
   const now = new Date(); 
+
   await next(); // Await for the middleware chain to end execution
 
   const ms = new Date() - now;
   console.log(`-- ${msg.id} - ${msg.name} - ${ms}ms`);
-
-});
-```
-
-Middleware to block access to certain functions if the user is not an administrator
-```javascript
-const adminFuncs = [ 'addUser', 'deleteUser', 'editUser' ]
-const user = { isAdmin: false };
-aio.use(async (next, ctx, msg) => {
-
-  for (let func in adminFuncs) {
-    if (msg.name === func && !user.isAdmin) {
-      return await next(
-        new Error(`Unauthorized call of method ${msg.name}`)
-      );
-    }
-  }
-  await next();
-
 });
 ```
 
@@ -212,23 +186,22 @@ If the `debug` option is set to false, which is the default, errors on your func
 
 As you may have noticed the same Awaited.io code is used on the __server__ and the __client__ so you can register functions on the client side and call them from the server. The sky is the limit ;)
 
-### Browser
-
-A _browser version_ of the module compiled with the `last 2 versions` option [babel-preset-env](https://github.com/babel/babel-preset-env) is located under the `browser` directory of the project, and set to the `browser` option of the `package.json`, so if you are using webpack you are good to go.
-
-### Current state
-
-By now the module has been tested to work properly on _Node.js_ the browser test will be done as soon as I can.
-
-Once the browser version has been tested I will publish the module on _NPM_.
-
-If you find a bug please open an issue.
 
 ### Examples
 
 By now there is only one example which is used as a test for all the module functions. It is well commented and I recomend you to read it if you want to know a little more how Awaited.io works.
 
 Also the module code is less than 140 lines of code and is well commented too.
+
+### Coffee contributions accepted
+
+As you may know developers fuel is coffee.
+
+Now that Github enabled **BAT Rewards**, if you are using [Brave Browser](https://brave.com/kal004) and feel that I deserve some coffee you can send me a tip or set a monthly contribution.
+
+If you are still not using [Brave Browser](https://brave.com/kal004), you can download it using [this link]() and I will get some BAT to buy more coffee ;)
+
+[Brave Browser](https://brave.com/kal004) is a superfast browser based in Chrome with integrated ad blocking and anti-tracking features. [Give it a try](https://brave.com/kal004)!
 
 ### License
 

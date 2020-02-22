@@ -1,17 +1,10 @@
 {
   "name": "awaited.io",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A minimalistic socket.io RPC using async/await",
   "main": "src/index.js",
-  "browser": "src/index.js",
   "scripts": {
-    "start": "npm run watch",
-    "watch": "cp -p .babelrc-node .babelrc; babel -s true src -d node -w; rm .babelrc",
-    "build": "npm run clean; npm run node; npm run browser",
-    "node": "cp -p .babelrc-node .babelrc; babel -s true src -d node; rm .babelrc",
-    "browser": "cp -p .babelrc-browser .babelrc; babel -s true src -d browser; rm -rf browser/examples; rm .babelrc",
-    "test": "node node/examples/socket-io-example.js",
-    "clean": "rm -rf node browser"
+    "test": "node src/examples/socket-io-example.js"
   },
   "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
   "homepage": "https://github.com/kalvinarts/awaited.io",
@@ -21,10 +14,8 @@
   },
   "license": "BSD-3-Clause",
   "private": false,
-  "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-preset-env": "0.0.9",
-    "socket.io": "^1.7.1",
-    "socket.io-client": "^1.7.1"
+  "dependencies": {
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0"
   }
 }
