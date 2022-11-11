@@ -1,6 +1,6 @@
 {
   "name": "awaited.io",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A minimalistic socket.io RPC using async/await",
   "main": "src/index.js",
   "scripts": {
