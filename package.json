@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node src/examples/socket-io-example.js"
   },
-  "author": "Albert Calbet <kalvin@unseen.is> (https://github.com/kalvinarts)",
+  "author": "Albert Calbet <kalvinarts@gmail.com> (https://github.com/kalvinarts)",
   "homepage": "https://github.com/kalvinarts/awaited.io",
   "repository": {
     "type": "git",
